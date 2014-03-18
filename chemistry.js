@@ -15,22 +15,25 @@
    -a-b- <-> =a + b-
 */
 
-var OFFDIAG = 0.1;
-var LOCALITY = 0.5;
-var TEMPERATURE = 0.1;
+var OFFDIAG = 0.1; // How much transformation on chemical identity is performed when you traverse a bond
+var LOCALITY = 0.5; // How quickly chemical environment falls off (looks like exp(-LOCALITY*x))
+var TEMPERATURE = 0.1; // Reactions occur with rate ~ exp(-deltaE/TEMPERATURE)
 
-var chemVecSize = 8;
+var chemVecSize = 8; // This determines the richness of the 'chemical identity' vector. If this is less than the number of kinds of atoms, there is degeneracy/interchangeability
+
+var compoundHash = []; /* This stores the energy and chemical environment for compounds we've previously encountered, to speed things up */
 
 var chemBath = [];
 
-var decompVector = new Vector(chemVecSize);
+var decompVector = new Vector(chemVecSize); // This particular vector must be within a certain distance of the local chemical identity for decomposition processes to occur at that bond
 
-var bondEnergies = [];
-var bondMatrix = [ new Matrix(chemVecSize), new Matrix(chemVecSize) ];
-var chemID = [];
+var bondEnergies = []; // Stores the energy of each type of single/double bond (A-A, B=C, etc)
+var bondMatrix = [ new Matrix(chemVecSize), new Matrix(chemVecSize) ]; // This matrix multiplies the chemical identity of an atom type when you traverse a bond
+var chemID = []; // This stores the chemical identity of each atom type
 
-var rxnList = [];
+var rxnList = []; // This stores the most recent reactions for analysis
 
+/* Initialize the bond matrices with random values */
 function setupBondMatrix()
 {
    for (var k=0;k<2;k++)
@@ -42,6 +45,7 @@ function setupBondMatrix()
        }
 }
 
+/* Initialize the chemical identities with random values */
 function setupChemID()
 {
    var charArray = ['A','B','C','D'];
@@ -60,6 +64,10 @@ function setupChemID()
       decompVector.x[i]=2*Math.random()-1;
 }
 
+/* Initialize the bond energies. Bond energies are symmetric in this 
+ * model (but don't have to be in general), and double bonds are simply 
+ * 'slightly deeper' than single bonds in a homogeneous way
+ */
 function setupBondEnergies()
 {
    // A,B,C,D
@@ -92,17 +100,39 @@ function setupBondEnergies()
    }
 }
 
+/* This defines the 'Chemical' object, which has a sequence, an energy,
+ * and a chemical environment for each bond */
+ 
 function Chemical(sequence)
 {
-   this.sequence = sequence;
-   this.energy = this.getEnergy();
+	this.sequence = sequence; 
+
+	// Check the hash to see if we have ever made this compound before
+	var hashEntry = compoundHash[sequence];
+		
+	// If we have, use pre-computed values
+	if (hashEntry) 
+	{
+		this.energy = hashEntry.energy;
+		this.chemEnv = hashEntry.chemEnv;
+	}
+	else // Otherwise compute them and store them in the hash
+	{
+		this.energy = this.getEnergy();
    
-   this.chemEnv = [];
-   // Only have an environment around a bond
-   for (var i=1;i<sequence.length-1;i+=2)
-      this.chemEnv[i] = this.getChemEnv(i);
+		this.chemEnv = [];
+	
+		// Only have an environment around a bond
+		for (var i=1;i<sequence.length-1;i+=2)
+			this.chemEnv[i] = this.getChemEnv(i);
+			
+		compoundHash[sequence]={ energy: this.energy, chemEnv: this.chemEnv };
+	}
 }
 
+/* This calculates the energy of a compound. In this model, it is purely
+ * based on counting bonds. To generalize this, modify getEnergy
+ */
 Chemical.prototype.getEnergy = function()
 {
 	var energy=0;
@@ -115,6 +145,11 @@ Chemical.prototype.getEnergy = function()
 	return energy;
 }
 
+/* This calculates the chemical environment at a bond at position 'pos'
+ * Note that 'pos' must be a bond location (e.g. an odd index) or this
+ * will behave very poorly, as it assumes that every 2 letters away
+ * from 'pos' will be a bond.
+ */
 Chemical.prototype.getChemEnv = function(pos)
 {
    var chemEnv = new Vector(chemVecSize);
@@ -141,7 +176,18 @@ Chemical.prototype.getChemEnv = function(pos)
    return chemEnv;
 }
 
-//   -a-b- <-> =a + b-
+/* This function attempts to find a valid decomposition reaction and
+ * evaluates whether it occurs via a Boltzmann exp(-deltaE/TEMPERATURE)
+ * term. The 'best' site is always used (where 'best' is determined by
+ * chemical environment of the bond, not the energy)
+ *
+ * The reaction is of the form: 
+ *    -a-b- -> =a + b-
+ * 
+ * Note that this is direction-dependent (in this model). The following
+ * reaction is not tested for:
+ *    -a-b- -> -a + b=
+ */
 
 function tryDecompose(chem1)
 {
@@ -172,7 +218,7 @@ function tryDecompose(chem1)
 	
 	if (site)
 	{
-		// a-b-c-d -> a=b + c-d ; site.si = 3
+		// Example: a-b-c-d -> a=b + c-d ; site.si = 3
 		outcome.prod1 = new Chemical(chem1.sequence.slice(0,site.si-2) +
 									"=" + chem1.sequence[site.si-1]);
 									
@@ -189,8 +235,12 @@ function tryDecompose(chem1)
 	return null;
 }
 
-//   -a-b- <-> =a + b-
-
+/* This is the reverse of the decomposition reaction
+ * =a + b- -> -a-b-
+ * 
+ * It does however check for the opposite shape
+ * -a + b= -> -a-b-
+ */
 function tryRecompose(chem1, chem2)
 {
 	var outcome = {
@@ -377,7 +427,7 @@ function doRandomReaction()
 function initializeBath()
 {
 	for (var i=0;i<1500;i++)
-		chemBath.push(new Chemical("A-A-D-D-C-B"));
+		chemBath.push(new Chemical("A-A-D-D-C-B")); // "A=A-B-C=D"
 }
 
 function initializeChemistry()
