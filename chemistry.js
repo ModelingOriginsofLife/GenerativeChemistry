@@ -15,8 +15,9 @@
    -a-b- <-> =a + b-
 */
 
+var maxLength = 50;
 var OFFDIAG = 0.1; // How much transformation on chemical identity is performed when you traverse a bond
-var LOCALITY = 0.5; // How quickly chemical environment falls off (looks like exp(-LOCALITY*x))
+var LOCALITY = 1.0; //0.5; // How quickly chemical environment falls off (looks like exp(-LOCALITY*x))
 var TEMPERATURE = 0.1; // Reactions occur with rate ~ exp(-deltaE/TEMPERATURE)
 
 var chemVecSize = 8; // This determines the richness of the 'chemical identity' vector. If this is less than the number of kinds of atoms, there is degeneracy/interchangeability
@@ -62,6 +63,8 @@ function setupChemID()
 	
    for (var i=0;i<chemVecSize;i++)
       decompVector.x[i]=2*Math.random()-1;
+      
+	decompVector = normalize(decompVector);
 }
 
 /* Initialize the bond energies. Bond energies are symmetric in this 
@@ -173,6 +176,7 @@ Chemical.prototype.getChemEnv = function(pos)
       chemEnv=vectAdd(chemEnv,matrixMulVector(cMatrix,chemID[this.sequence[i-1]]));
    }
    
+   chemEnv = normalize(chemEnv);
    return chemEnv;
 }
 
@@ -208,7 +212,7 @@ function tryDecompose(chem1)
 			var dist = dot(dchem,dchem);
 					
 			// Only choose the one best reaction as far as chemical environment
-			if ((dist<bestdist)&&(dist<4.0)) 
+			if ((dist<bestdist)&&(dist<2.0)) 
 			{
 				bestdist=dist;
 				site = { si: i };
@@ -363,6 +367,12 @@ function tryDblBondReact(chem1, chem2)
    return null;
 }
 
+function delChem(id)
+{
+	chemBath[id]=chemBath[chemBath.length-1];
+	chemBath.pop();
+}
+
 function doRandomReaction()
 {
 	var c1_id=Math.floor(Math.random()*chemBath.length);
@@ -383,12 +393,15 @@ function doRandomReaction()
 			outcome=tryDecompose(chemBath[c1_id]);
 			if (outcome)
 			{
+				if (outcome.prod1.sequence.length>maxLength) return;
+				if (outcome.prod2.sequence.length>maxLength) return;
 				rxnList.push({E11: chemBath[c1_id].energy, 
 					E12: -1000,
 					E21: outcome.prod1.energy,
 					E22: outcome.prod2.energy});
 /*				console.log(chemBath[c1_id].sequence + " -> " + 
 							outcome.prod1.sequence + " + " + outcome.prod2.sequence);*/
+				
 				chemBath[c1_id]=outcome.prod1;
 				chemBath.push(outcome.prod2);
 			}
@@ -398,6 +411,7 @@ function doRandomReaction()
 			outcome=tryRecompose(chemBath[c1_id],chemBath[c2_id]);
 			if (outcome)
 			{
+				if (outcome.prod1.sequence.length>maxLength) return;
 				rxnList.push({E11: chemBath[c1_id].energy, 
 					E12: chemBath[c2_id].energy,
 					E21: outcome.prod1.energy,
@@ -405,8 +419,8 @@ function doRandomReaction()
 /*				console.log(chemBath[c1_id].sequence + " + " + 
 							chemBath[c2_id].sequence + " -> " + outcome.prod1.sequence);*/
 				chemBath[c1_id]=outcome.prod1;
-				chemBath[c2_id]=chemBath[chemBath.length-1];
-				chemBath.pop();
+				
+				delChem(c2_id);
 			}
 			break;
 			
@@ -414,9 +428,13 @@ function doRandomReaction()
 			outcome=tryDblBondReact(chemBath[c1_id],chemBath[c2_id]);
 			if (outcome)
 			{
+				if (outcome.prod1.sequence.length>maxLength) return;
+				if (outcome.prod2.sequence.length>maxLength) return;
+				
 				rxnList.push({E11: chemBath[c1_id].energy, E12: chemBath[c2_id].energy, E21: outcome.prod1.energy, E22: outcome.prod2.energy});
 /*				console.log(chemBath[c1_id].sequence + " + " + 
 							chemBath[c2_id].sequence + " -> "+ outcome.prod1.sequence + " + " + outcome.prod2.sequence);*/
+				
 				chemBath[c1_id]=outcome.prod1;
 				chemBath[c2_id]=outcome.prod2;
 			}
@@ -427,7 +445,7 @@ function doRandomReaction()
 function initializeBath()
 {
 	for (var i=0;i<1500;i++)
-		chemBath.push(new Chemical("A-A-D-D-C-B")); // "A=A-B-C=D"
+		chemBath.push(new Chemical("B=C"));//A-B-D-D-C-B")); // "A=A-B-C=D"
 }
 
 function initializeChemistry()
@@ -494,8 +512,10 @@ function resetBath()
 	chemBath = [];
 	
 	for (var i=0;i<1500;i++)
+	{
 		chemBath.push(new Chemical(molString));
-		
+	}
+	
 	isResetting = 2;
 }
 

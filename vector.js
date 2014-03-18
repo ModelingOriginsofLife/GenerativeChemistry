@@ -1,3 +1,19 @@
+function normalize(v)
+{
+	var vn = new Vector(v.N);
+	var mag = 0;
+	
+	for (var i=0;i<v.N;i++)
+		mag += v.x[i]*v.x[i];
+		
+	mag = Math.sqrt(mag);
+	
+	for (var i=0;i<v.N;i++)
+		vn.x[i] = v.x[i]/mag;
+		
+	return vn;
+}
+
 function Matrix(N)
 {
    this.N=N;

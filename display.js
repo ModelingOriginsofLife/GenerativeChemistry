@@ -130,15 +130,17 @@ function Iterate()
 	
 	if (!isResetting)
 	{
-		for (var i=0;i<10000;i++)
-			doRandomReaction();
-		counter+=10000;
+		for (var i=0;i<1000;i++)
+			if (chemBath.length>2)
+				doRandomReaction();
+		
+		counter+=1000;
+		Display();
 	}
-	
+		
 	if (isResetting==2) { counter=0; isResetting=0; }
 //	chemBath.push(new Chemical("D=C"));
 	
-	Display();
 	requestAnimFrame( Iterate );
 }
 

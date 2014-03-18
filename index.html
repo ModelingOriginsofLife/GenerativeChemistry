@@ -11,11 +11,15 @@
 
 <div id="status" style="position: absolute; top: 0px; left: 20px; width: 300px: height: 30px"></div>
 <div id="compounds"  style="position: absolute; top: 20px; left: 0px; width: 300px: height: 30px"></div>
-<canvas id="reaction_graph" width=400 height=400 style="position: absolute; top: 20px; left: 500px; width: 400px; height: 400px"></canvas>
-<div id="ping" style="position: absolute; top: 450px; left: 500px; width: 400px; height: 400px">
+<canvas id="reaction_graph" width=400 height=400 style="position: absolute; top: 20px; left: 600px; width: 400px; height: 400px"></canvas>
+<div id="ping" style="position: absolute; top: 450px; left: 600px; width: 400px; height: 400px">
 Reset bath: <input value="A-A-D-D-C-B" type="text" id="bathstring"><input value="Reset" type=button id="resetbutton" onclick="resetBath()"><br>
 Add molecule: <input value="A-B-C=B" type="text" id="molstring" style="width:160px"> x<input value="1" type=number id="ammt" maxlength="5" size="5" style="width:70px"><input value="Add" type=button id="addbutton" onclick="addMolecule()"><br>
 Temperature: <input value="0.1" step=0.1 type="number" id="temp" onchange="adjTemperature()"><br>
+<p>If you add one A=D molecule to this, it creates an environment that
+consumes an arbitrary amount of B=C to produce more of the same family
+of molecules. This is somewhere between fire and the citric acid
+cycle...</p>
 </div>
 </body>
 </html>
