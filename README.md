@@ -3,16 +3,24 @@ GenerativeChemistry
 
 This is a well-mixed reactor model of a 'generative' chemistry on strings - that is, the reaction network is generated from stoichiometry and underlying rules (e.g. bond energies, local chemical structure). This type of chemistry effectively self-extends its own reaction network at need.
 
-[Click here!](http://modelingoriginsoflife.github.io/GenerativeChemistry/)
+[Click
+here!](http://modelingoriginsoflife.github.io/GenerativeChemistry/autocata/)
 
-Interesting reactions to explore:
+This particular version implements a chemistry with a weakened
+'non-locality' and normalized chemical environments. This tends to
+(for whatever reason) produce more polymerization reactions.
 
-A-B-C-B-A-A-D: Catalyzes A-A-D-D-C-B -> A-D + D-C-B-A
+There's an odd effect of this however:
 
-A=B-C-C: Makes catalyst to produce A-D-D-C-B from A-A-D-D-C-B
+B=C is stable in solution, as is A=D, but a single molecule of A=D
+will consume the entirety of a bath of B=C to produce a family of B-C
+variant polymers. This is due to the B=C molecule condensing on either
+side with existing B-C polymers as well as exchanging across the
+double bond. This means that the B-C polymers both grow through
+condensation and shrink through splitting, giving rise to some sort of
+population of molecules that can 'eat' B-C.
 
-A=C: Condensation agent with D-C-B-A to form A-C and D-C-B-A-D-C-B-A-...
-
-A=B: Condensation agent with D-C-B-A to form A-B and D-C-B-A-D-C-B-A
-
-B=A-A=B: Condensation agent with D-C-B-A -> A-B-D-C-B-A + D-C-B-A-B-A-D-C-B-A + ...
+This is more complex a phenomenon than something like fire (another
+run-away reaction), but lacks the perfect preservation of identity of
+something like a molecule that is (individually) autocatalytic, so you
+have some sort of state between two 'types' of amplification.
