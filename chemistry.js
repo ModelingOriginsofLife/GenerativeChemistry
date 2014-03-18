@@ -334,7 +334,7 @@ function doRandomReaction()
 			if (outcome)
 			{
 				rxnList.push({E11: chemBath[c1_id].energy, 
-					E12: 0,
+					E12: -1000,
 					E21: outcome.prod1.energy,
 					E22: outcome.prod2.energy});
 /*				console.log(chemBath[c1_id].sequence + " -> " + 
@@ -351,7 +351,7 @@ function doRandomReaction()
 				rxnList.push({E11: chemBath[c1_id].energy, 
 					E12: chemBath[c2_id].energy,
 					E21: outcome.prod1.energy,
-					E22: 0});
+					E22: -1000});
 /*				console.log(chemBath[c1_id].sequence + " + " + 
 							chemBath[c2_id].sequence + " -> " + outcome.prod1.sequence);*/
 				chemBath[c1_id]=outcome.prod1;
@@ -404,21 +404,52 @@ function hashBath()
 	return chemHash;
 }
 
-function addMolecule()
+function checkMolString(molString)
 {
-	var molString = document.getElementById("molstring").value;
+	if (molString.length<3) return 0;
+	if (molString.length%2!=1) return 0;
 	
 	for (var i=0;i<molString.length;i+=2)
 	{
-		if ((molString[i]!='A')&&(molString[i]!='B')&&(molString[i]!='C')&&(molString[i]!='D')) return;
+		if ((molString[i]!='A')&&(molString[i]!='B')&&(molString[i]!='C')&&(molString[i]!='D')) return 0;
 	}
 	for (var i=1;i<molString.length;i+=2)
 	{
-		if ((molString[i]!='-')&&(molString[i]!='=')) return;
+		if ((molString[i]!='-')&&(molString[i]!='=')) return 0;
 	}
+		
+	return 1;
+}
+
+function addMolecule()
+{
+	var molString = document.getElementById("molstring").value;
+	if (!checkMolString(molString)) return;
+	var ammt=document.getElementById("ammt").value;
 	
-	if (molString.length<3) return;
-	if (molString.length%2!=1) return;
+	for (var i=0;i<ammt;i++)
+		chemBath.push(new Chemical(molString));
+}
+
+var isResetting = 0;
+
+function resetBath()
+{
+	if (isResetting) return;
 	
-	chemBath.push(new Chemical(molString));
+	var molString = document.getElementById("bathstring").value;
+	if (!checkMolString(molString)) return;
+	
+	isResetting = 1;
+	chemBath = [];
+	
+	for (var i=0;i<1500;i++)
+		chemBath.push(new Chemical(molString));
+		
+	isResetting = 2;
+}
+
+function adjTemperature()
+{
+	TEMPERATURE = parseFloat(document.getElementById("temp").value);
 }

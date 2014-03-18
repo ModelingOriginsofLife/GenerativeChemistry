@@ -11,12 +11,9 @@
 <div id="compounds"  style="position: absolute; top: 20px; left: 0px; width: 300px: height: 30px"></div>
 <canvas id="reaction_graph" width=400 height=400 style="position: absolute; top: 20px; left: 500px; width: 400px: height: 400px"></canvas>
 <div id="ping" style="position: absolute; top: 450px; left: 500px; width: 400px; height: 400px">
-Add molecule: <input value="A-B-C=B" type="text" id="molstring"><input value="Add Molecule" type=button id="addbutton" onclick="addMolecule()"><br>
-<p>Interesting molecules:
-<ul>
-<li>A-B-C=B: Creates a catalyst that makes a lot of A-D and D-C-B-A</li>
-<li>A-B-C-B-A-A-D: This catalyzes the decomposition of A-A-D-D-C-B into A-D and D-C-B-A</li>
-</ul>
+Reset bath: <input value="A-A-D-D-C-B" type="text" id="bathstring"><input value="Reset" type=button id="resetbutton" onclick="resetBath()"><br>
+Add molecule: <input value="A-B-C=B" type="text" id="molstring" style="width:160px"> x<input value="1" type=number id="ammt" maxlength="5" size="5" style="width:70px"><input value="Add" type=button id="addbutton" onclick="addMolecule()"><br>
+Temperature: <input value="0.1" step=0.1 type="number" id="temp" onchange="adjTemperature()"><br>
 </div>
 </body>
 </html>

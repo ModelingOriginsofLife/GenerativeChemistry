@@ -69,8 +69,8 @@ function renderReactionGraph()
 		max1=rxnList[i].E11; if (rxnList[i].E12>max1) max1=rxnList[i].E12;
 		max2=rxnList[i].E21; if (rxnList[i].E22>max2) max2=rxnList[i].E22;
 		
-		gx0=50+(max1+7)*30;		
-		gy0=350-(max2+7)*30;
+		gx0=50+(max1+15)*20;		
+		gy0=350-(max2+15)*20;
 		
 		context.beginPath();
 		context.arc( gx0, gy0, 3, 0, 2*Math.PI);
@@ -123,16 +123,19 @@ function Display()
 
 function Iterate()
 {
-	if (rxnList.length>100)
+	if (rxnList.length>1000)
 	{
-		rxnList.splice(0,rxnList.length-100);
+		rxnList.splice(0,rxnList.length-1000);
 	}
 	
-	for (var i=0;i<10000;i++)
-		doRandomReaction();
-
-	counter+=10000;
+	if (!isResetting)
+	{
+		for (var i=0;i<10000;i++)
+			doRandomReaction();
+		counter+=10000;
+	}
 	
+	if (isResetting==2) { counter=0; isResetting=0; }
 //	chemBath.push(new Chemical("D=C"));
 	
 	Display();
